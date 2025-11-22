@@ -6,13 +6,10 @@ import { useGame } from "@/hooks/useGame";
 import { Scanner } from "@yudiel/react-qr-scanner";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle, XCircle } from "lucide-react";
-import { doc, updateDoc, arrayUnion } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { checkBingo } from "@/lib/game-logic";
 
 export default function ScanPage() {
     const { user } = useAuth();
-    const { gameState } = useGame();
+    const { gameState, registerScan } = useGame();
     const [scanResult, setScanResult] = useState<{ success: boolean; message: string } | null>(null);
     const [paused, setPaused] = useState(false);
 
@@ -24,35 +21,8 @@ export default function ScanPage() {
 
         setPaused(true);
 
-        // Check if already collected
-        if (gameState.collectedUids.includes(result)) {
-            setScanResult({ success: false, message: "Redan tagen!" });
-            return;
-        }
-
-        // Check if on board
-        if (!gameState.board.includes(result)) {
-            setScanResult({ success: false, message: "Inte på din bricka tyvärr!" });
-            return;
-        }
-
-        // Update Firestore
-        try {
-            const gameRef = doc(db, "game_states", user.uid);
-            const newCollected = [...gameState.collectedUids, result];
-            const isBingo = checkBingo(gameState.board, newCollected);
-
-            await updateDoc(gameRef, {
-                collectedUids: arrayUnion(result),
-                isBingo: isBingo,
-                lastUpdated: Date.now()
-            });
-
-            setScanResult({ success: true, message: isBingo ? "BINGO!!!" : "Träff!" });
-        } catch (e) {
-            console.error(e);
-            setScanResult({ success: false, message: "Kunde inte spara..." });
-        }
+        const { success, message } = await registerScan(result);
+        setScanResult({ success, message });
     };
 
     const resetScan = () => {

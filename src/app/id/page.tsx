@@ -6,9 +6,9 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 export default function MyIDPage() {
-    const { user } = useAuth();
+    const { user, userProfile } = useAuth();
 
-    if (!user) return null;
+    if (!user || !userProfile) return null;
 
     return (
         <div className="min-h-screen bg-blue-600 flex flex-col items-center justify-center p-4 text-white relative">
@@ -26,15 +26,15 @@ export default function MyIDPage() {
                     <QRCode
                         size={256}
                         style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                        value={user.uid}
+                        value={userProfile.slackId || user.uid}
                         viewBox={`0 0 256 256`}
                     />
                 </div>
             </div>
 
             <div className="mt-8 flex items-center gap-4">
-                <img src={user.photoURL || ""} className="w-12 h-12 rounded-full border-2 border-white" alt="Profile" />
-                <span className="font-semibold text-xl">{user.displayName}</span>
+                <img src={userProfile.photoURL || user.photoURL || ""} className="w-12 h-12 rounded-full border-2 border-white" alt="Profile" />
+                <span className="font-semibold text-xl">{userProfile.displayName}</span>
             </div>
         </div>
     );

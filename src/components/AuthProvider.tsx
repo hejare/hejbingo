@@ -42,8 +42,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     setUserProfile(profile);
                     // Update last login
                     await setDoc(userRef, { lastLogin: Date.now() }, { merge: true });
-                } else {
-                    // Create new user profile
+                }
+
+                // Sync with Slack
+                try {
+                    const res = await fetch("/api/user/sync", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email: firebaseUser.email }),
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.success) {
+                            const updatedProfile: Partial<UserProfile> = {
+                                displayName: data.realName,
+                                photoURL: data.image,
+                                slackId: data.slackId,
+                            };
+
+                            await setDoc(userRef, updatedProfile, { merge: true });
+
+                            // Update local state if we already have a profile, or create new one if not
+                            setUserProfile(prev => prev ? { ...prev, ...updatedProfile } : {
+                                uid: firebaseUser.uid,
+                                displayName: data.realName,
+                                email: firebaseUser.email || "",
+                                photoURL: data.image,
+                                slackId: data.slackId,
+                                department: "Unknown",
+                                createdAt: Date.now(),
+                            });
+                        }
+                    }
+                } catch (e) {
+                    console.error("Failed to sync with Slack", e);
+                }
+
+                if (!userSnap.exists() && !userProfile) {
+                    // Fallback creation if Slack sync failed or didn't happen yet and no profile exists
+                    // This might be overwritten by the sync above if it succeeds later, but good for immediate feedback
+                    // Actually, let's just wait for sync or use basic info
                     const newProfile: UserProfile = {
                         uid: firebaseUser.uid,
                         displayName: firebaseUser.displayName || "Anonymous",
@@ -52,8 +91,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                         department: "Unknown",
                         createdAt: Date.now(),
                     };
-                    await setDoc(userRef, newProfile);
-                    setUserProfile(newProfile);
+                    // Only set if we haven't set it yet (e.g. sync failed)
+                    if (!userProfile) { // This check is tricky because of async state updates. 
+                        // Better to rely on the setDoc above.
+                        await setDoc(userRef, newProfile, { merge: true });
+                        setUserProfile(prev => prev || newProfile);
+                    }
                 }
 
                 if (pathname === "/login") {

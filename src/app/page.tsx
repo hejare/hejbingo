@@ -8,12 +8,14 @@ import { auth, db } from "@/lib/firebase";
 import { writeBatch, doc } from "firebase/firestore";
 import Link from "next/link";
 import { Scan, QrCode, Trophy } from "lucide-react";
+import { BingoOverlay } from "@/components/BingoOverlay";
 
 export default function Home() {
-  const { user } = useAuth();
-  const { gameState, allUsers, loading } = useGame();
+  const { user, userProfile } = useAuth();
+  const { gameState, allUsers, loading, registerScan } = useGame();
 
   const [creating, setCreating] = useState(false);
+  const [devMode, setDevMode] = useState(false);
 
   const createBoard = async () => {
     setCreating(true);
@@ -21,7 +23,7 @@ export default function Home() {
       const res = await fetch("/api/board/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uid: user?.uid }),
+        body: JSON.stringify({ uid: userProfile?.slackId || user?.uid }),
       });
 
       const data = await res.json();
@@ -58,6 +60,15 @@ export default function Home() {
     }
   };
 
+  const handleTileClick = async (uid: string) => {
+    if (!devMode || !registerScan) return;
+
+    if (confirm(`Dev Mode: Simulera scan av ${uid}?`)) {
+      const { success, message } = await registerScan(uid);
+      alert(message);
+    }
+  };
+
   if (loading) return <div className="h-screen flex items-center justify-center">Loading game...</div>;
 
   if (!gameState) {
@@ -88,6 +99,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50 pb-24">
+      {gameState.isBingo && <BingoOverlay onComplete={() => { }} />}
       {/* Header */}
       <header className="bg-white shadow-sm p-4 sticky top-0 z-10">
         <div className="flex justify-between items-center max-w-md mx-auto">
@@ -110,8 +122,9 @@ export default function Home() {
             return (
               <div
                 key={idx}
+                onClick={() => !isFree && !isCollected && handleTileClick(uid)}
                 className={`relative rounded-lg overflow-hidden shadow-sm border-2 transition-all ${isCollected ? "border-green-500 bg-green-50" : "border-white bg-white"
-                  }`}
+                  } ${devMode && !isCollected && !isFree ? "cursor-pointer hover:border-purple-500 hover:scale-105" : ""}`}
               >
                 {isFree ? (
                   <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600 font-bold text-xs text-center p-1">
@@ -139,6 +152,20 @@ export default function Home() {
         </div>
       </div>
 
+      <div className="flex justify-center mt-8">
+        <button
+          onClick={() => {
+            if (confirm("Är du säker? Detta nollställer din nuvarande bricka.")) {
+              createBoard();
+            }
+          }}
+          disabled={creating}
+          className="text-sm text-gray-500 underline hover:text-red-600 disabled:opacity-50"
+        >
+          {creating ? "Skapar..." : "Slumpa ny bricka"}
+        </button>
+      </div>
+
       {/* Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 pb-8 shadow-lg z-20">
         <div className="flex justify-around max-w-md mx-auto">
@@ -155,7 +182,7 @@ export default function Home() {
           </Link>
 
           <button onClick={() => auth.signOut()} className="flex flex-col items-center gap-1 text-gray-500 hover:text-red-600">
-            <img src={user?.photoURL || ""} className="w-6 h-6 rounded-full" alt="Profile" />
+            <img src={userProfile?.photoURL || user?.photoURL || ""} className="w-6 h-6 rounded-full" alt="Profile" />
             <span className="text-xs">Profile</span>
           </button>
         </div>
@@ -163,6 +190,12 @@ export default function Home() {
 
       {/* Debug / Seed Button */}
       <div className="fixed top-20 right-4 z-50 flex flex-col gap-2">
+        <button
+          onClick={() => setDevMode(!devMode)}
+          className={`text-xs px-3 py-1 rounded-full shadow-lg transition-colors ${devMode ? "bg-purple-600 text-white" : "bg-gray-200 text-gray-700"}`}
+        >
+          {devMode ? "Dev Mode: ON" : "Dev Mode: OFF"}
+        </button>
         {allUsers.length < 5 && (
           <button
             onClick={async () => {
