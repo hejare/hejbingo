@@ -14,6 +14,7 @@
 - Fortsätta på samma bräda efter Bingo eller skapa en ny?
 - High score
 - Uppdatera block-listan
+- 
  
 
 ## RULES 

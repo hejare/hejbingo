@@ -123,6 +123,7 @@ export default function Home() {
               <div
                 key={idx}
                 onClick={() => !isFree && !isCollected && handleTileClick(uid)}
+                title={cellUser ? cellUser.displayName : "Free Space"}
                 className={`relative rounded-lg overflow-hidden shadow-sm border-2 transition-all ${isCollected ? "border-green-500 bg-green-50" : "border-white bg-white"
                   } ${devMode && !isCollected && !isFree ? "cursor-pointer hover:border-purple-500 hover:scale-105" : ""}`}
               >

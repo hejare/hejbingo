@@ -119,7 +119,7 @@ export async function postBingoMessage(userProfile: UserProfile) {
 
         await client.chat.postMessage({
             channel: channelId,
-            text: `🎲 BINGO! 🎲\n\nCongratulations to <@${slackUserId}> who just got a BINGO! 🎉`,
+            text: `*BINGO!*\n\n Grattis till to <@${slackUserId}> who just got a BINGO! 🎉`,
         });
 
     } catch (error) {
