@@ -26,19 +26,7 @@ export function useGame() {
                 if (snap.exists()) {
                     setGameState(snap.data() as GameState);
                 } else {
-                    // Create initial game state
-                    if (users.length > 0) {
-                        const board = generateBoard(users, user.uid);
-                        const newGame: GameState = {
-                            uid: user.uid,
-                            board,
-                            collectedUids: [],
-                            isBingo: false,
-                            lastUpdated: Date.now(),
-                        };
-                        await setDoc(gameRef, newGame);
-                        setGameState(newGame);
-                    }
+                    setGameState(null);
                 }
                 setLoading(false);
             });

@@ -1,15 +1,14 @@
-import "server-only";
-import * as admin from "firebase-admin";
+import { cert, getApps, initializeApp } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
 
-if (!admin.apps.length) {
-    admin.initializeApp({
-        credential: admin.credential.cert({
-            projectId: process.env.FIREBASE_PROJECT_ID,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-        }),
+const serviceAccount = JSON.parse(
+    process.env.FIREBASE_SERVICE_ACCOUNT_KEY || "{}"
+);
+
+if (!getApps().length) {
+    initializeApp({
+        credential: cert(serviceAccount),
     });
 }
 
-export const dbAdmin = admin.firestore();
-export const authAdmin = admin.auth();
+export const adminDb = getFirestore();

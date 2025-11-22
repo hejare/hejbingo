@@ -1,8 +1,11 @@
 "use client";
 
+import { useState } from "react";
+
 import { useAuth } from "@/components/AuthProvider";
 import { useGame } from "@/hooks/useGame";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
+import { writeBatch, doc } from "firebase/firestore";
 import Link from "next/link";
 import { Scan, QrCode, Trophy } from "lucide-react";
 
@@ -10,7 +13,76 @@ export default function Home() {
   const { user } = useAuth();
   const { gameState, allUsers, loading } = useGame();
 
-  if (loading || !gameState) return <div className="h-screen flex items-center justify-center">Loading game...</div>;
+  const [creating, setCreating] = useState(false);
+
+  const createBoard = async () => {
+    setCreating(true);
+    try {
+      const res = await fetch("/api/board/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uid: user?.uid }),
+      });
+
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+
+      // Save to Firestore using client SDK
+      const batch = writeBatch(db);
+
+      // Save users
+      data.users.forEach((u: any) => {
+        const ref = doc(db, "users", u.uid);
+        batch.set(ref, u, { merge: true });
+      });
+
+      // Save game state
+      const newGame = {
+        uid: user?.uid,
+        board: data.board,
+        collectedUids: [],
+        isBingo: false,
+        lastUpdated: Date.now(),
+      };
+      const gameRef = doc(db, "game_states", user!.uid);
+      batch.set(gameRef, newGame);
+
+      await batch.commit();
+
+      // Force reload or state update? useGame hook should pick it up via onSnapshot
+    } catch (e) {
+      console.error(e);
+      alert("Failed to create board");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  if (loading) return <div className="h-screen flex items-center justify-center">Loading game...</div>;
+
+  if (!gameState) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center gap-4 p-4">
+        <h1 className="text-2xl font-bold text-gray-800">Välkommen till Hejare Bingo!</h1>
+        <p className="text-center text-gray-600 max-w-xs">
+          För att börja spela behöver du en bingobricka med dina kollegor.
+        </p>
+        <button
+          onClick={createBoard}
+          disabled={creating}
+          className="bg-blue-600 text-white px-6 py-3 rounded-full font-bold shadow-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        >
+          {creating ? (
+            <>
+              <span className="animate-spin">⏳</span> Skapar bricka...
+            </>
+          ) : (
+            "Skapa bingo-bräda"
+          )}
+        </button>
+      </div>
+    );
+  }
 
   const getUser = (uid: string) => allUsers.find(u => u.uid === uid);
 
@@ -106,27 +178,6 @@ export default function Home() {
           </button>
         )}
 
-        <button
-          onClick={async () => {
-            if (confirm("Vill du synka från Google Workspace?")) {
-              try {
-                const res = await fetch("/api/sync", { method: "POST" });
-                const data = await res.json();
-                if (data.success) {
-                  alert(`Synkade ${data.count} användare!`);
-                  window.location.reload();
-                } else {
-                  alert("Kunde inte synka: " + (data.error || "Okänt fel"));
-                }
-              } catch (e) {
-                alert("Fel vid anrop till sync");
-              }
-            }
-          }}
-          className="bg-blue-600 text-white text-xs px-3 py-1 rounded-full shadow-lg hover:bg-blue-700"
-        >
-          ↻ Sync Directory
-        </button>
       </div>
     </main>
   );

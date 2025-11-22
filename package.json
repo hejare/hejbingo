@@ -9,10 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@slack/web-api": "^7.12.0",
     "@yudiel/react-qr-scanner": "^2.4.1",
     "firebase": "^12.6.0",
     "firebase-admin": "^13.6.0",
-    "googleapis": "^166.0.0",
     "lucide-react": "^0.554.0",
     "next": "16.0.3",
     "react": "19.2.0",
