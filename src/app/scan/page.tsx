@@ -31,8 +31,8 @@ export default function ScanPage() {
     };
 
     return (
-        <div className="min-h-screen bg-black flex flex-col relative">
-            <Link href="/" className="absolute top-4 left-4 z-20 p-2 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors">
+        <div className="min-h-screen bg-background flex flex-col relative">
+            <Link href="/" className="absolute top-4 left-4 z-20 p-2 bg-white/10 rounded-full text-white hover:bg-white/20 transition-colors backdrop-blur-sm">
                 <ArrowLeft className="w-6 h-6" />
             </Link>
 
@@ -44,21 +44,21 @@ export default function ScanPage() {
                             components={{ onOff: false, torch: false, zoom: false, finder: true }}
                             styles={{ container: { width: "100%", height: "100%" } }}
                         />
-                        <div className="absolute bottom-20 left-0 right-0 text-center text-white/80 text-sm pointer-events-none">
+                        <div className="absolute bottom-20 left-0 right-0 text-center text-white/80 text-sm pointer-events-none font-medium drop-shadow-md">
                             Peka kameran mot en kollegas QR-kod
                         </div>
                     </div>
                 ) : (
-                    <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center p-8 text-center z-30 animate-in fade-in zoom-in duration-300">
+                    <div className="absolute inset-0 bg-background/95 flex flex-col items-center justify-center p-8 text-center z-30 animate-in fade-in zoom-in duration-300 backdrop-blur-sm">
                         {scanResult.success ? (
-                            <CheckCircle className="w-24 h-24 text-green-500 mb-4" />
+                            <CheckCircle className="w-24 h-24 text-green-400 mb-4 drop-shadow-lg" />
                         ) : (
-                            <XCircle className="w-24 h-24 text-red-500 mb-4" />
+                            <XCircle className="w-24 h-24 text-red-400 mb-4 drop-shadow-lg" />
                         )}
-                        <h2 className="text-3xl font-bold text-white mb-2">{scanResult.message}</h2>
+                        <h2 className="text-4xl font-bold text-white mb-2 drop-shadow-md">{scanResult.message}</h2>
                         <button
                             onClick={resetScan}
-                            className="mt-8 bg-white text-black font-bold py-3 px-8 rounded-full hover:bg-gray-200 transition-colors"
+                            className="mt-8 bg-accent text-background font-bold py-3 px-8 rounded-full hover:bg-white hover:text-accent transition-all transform hover:scale-105 shadow-lg"
                         >
                             Scanna igen
                         </button>

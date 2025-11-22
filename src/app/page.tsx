@@ -98,21 +98,21 @@ export default function Home() {
   const getUser = (uid: string) => allUsers.find(u => u.uid === uid);
 
   return (
-    <main className="min-h-screen bg-gray-50 pb-24">
+    <main className="min-h-screen bg-background pb-24 flex flex-col justify-center">
       {gameState.isBingo && <BingoOverlay onComplete={() => { }} />}
       {/* Header */}
-      <header className="bg-white shadow-sm p-4 sticky top-0 z-10">
-        <div className="flex justify-between items-center max-w-md mx-auto">
-          <h1 className="text-xl font-bold text-gray-800">Hejare Bingo</h1>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-600">{gameState.collectedUids.length} / 25</span>
-            {gameState.isBingo && <Trophy className="w-6 h-6 text-yellow-500 animate-bounce" />}
+      <header className="p-4 z-10 text-center mb-4">
+        <div className="flex flex-col items-center max-w-md mx-auto">
+          <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-md">Hej Bingo!</h1>
+          <div className="flex items-center gap-2 bg-white/10 px-4 py-1 rounded-full backdrop-blur-sm">
+            <span className="text-sm font-medium text-white">{gameState.collectedUids.length} / 25</span>
+            {gameState.isBingo && <Trophy className="w-5 h-5 text-yellow-400 animate-bounce" />}
           </div>
         </div>
       </header>
 
       {/* Board */}
-      <div className="p-4 max-w-md mx-auto">
+      <div className="p-4 max-w-md mx-auto w-full">
         <div className="grid grid-cols-5 gap-2 aspect-square">
           {gameState.board.map((uid, idx) => {
             const cellUser = getUser(uid);
@@ -124,11 +124,11 @@ export default function Home() {
                 key={idx}
                 onClick={() => !isFree && !isCollected && handleTileClick(uid)}
                 title={cellUser ? cellUser.displayName : "Free Space"}
-                className={`relative rounded-lg overflow-hidden shadow-sm border-2 transition-all ${isCollected ? "border-green-500 bg-green-50" : "border-white bg-white"
-                  } ${devMode && !isCollected && !isFree ? "cursor-pointer hover:border-purple-500 hover:scale-105" : ""}`}
+                className={`relative rounded-lg overflow-hidden shadow-sm border-2 transition-all aspect-square ${isCollected ? "border-accent bg-green-500/20" : "border-white/20 bg-white/10 backdrop-blur-sm"
+                  } ${devMode && !isCollected && !isFree ? "cursor-pointer hover:border-accent hover:scale-105" : ""}`}
               >
                 {isFree ? (
-                  <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600 font-bold text-xs text-center p-1">
+                  <div className="w-full h-full flex items-center justify-center bg-accent text-background font-bold text-xs text-center p-1">
                     FREE
                   </div>
                 ) : cellUser ? (
@@ -136,16 +136,16 @@ export default function Home() {
                     <img
                       src={cellUser.photoURL || `https://ui-avatars.com/api/?name=${cellUser.displayName}`}
                       alt={cellUser.displayName}
-                      className={`w-full h-full object-cover ${isCollected ? "opacity-100" : "opacity-50 grayscale"}`}
+                      className={`w-full h-full object-cover ${isCollected ? "opacity-100" : "opacity-70 grayscale"}`}
                     />
                     {isCollected && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-green-500/20">
-                        <span className="text-green-600 font-bold text-xl">✓</span>
+                      <div className="absolute inset-0 flex items-center justify-center bg-accent/40">
+                        <span className="text-white font-bold text-xl drop-shadow-md">✓</span>
                       </div>
                     )}
                   </>
                 ) : (
-                  <div className="w-full h-full bg-gray-200" />
+                  <div className="w-full h-full bg-white/5" />
                 )}
               </div>
             );
@@ -161,41 +161,41 @@ export default function Home() {
             }
           }}
           disabled={creating}
-          className="text-sm text-gray-500 underline hover:text-red-600 disabled:opacity-50"
+          className="text-sm text-white/60 underline hover:text-accent disabled:opacity-50"
         >
           {creating ? "Skapar..." : "Slumpa ny bricka"}
         </button>
       </div>
 
       {/* Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 pb-8 shadow-lg z-20">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white/10 backdrop-blur-md border-t border-white/10 p-4 pb-8 shadow-lg z-20">
         <div className="flex justify-around max-w-md mx-auto">
-          <Link href="/id" className="flex flex-col items-center gap-1 text-gray-500 hover:text-blue-600">
+          <Link href="/id" className="flex flex-col items-center gap-1 text-white/70 hover:text-accent transition-colors">
             <QrCode className="w-6 h-6" />
             <span className="text-xs">My ID</span>
           </Link>
 
           <Link href="/scan" className="flex flex-col items-center gap-1 -mt-8">
-            <div className="bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors">
+            <div className="bg-accent text-background p-4 rounded-full shadow-lg hover:bg-white hover:text-accent transition-all transform hover:scale-105">
               <Scan className="w-8 h-8" />
             </div>
-            <span className="text-xs font-medium text-blue-600">Scan</span>
+            <span className="text-xs font-bold text-accent">Scan</span>
           </Link>
 
-          <button onClick={() => auth.signOut()} className="flex flex-col items-center gap-1 text-gray-500 hover:text-red-600">
-            <img src={userProfile?.photoURL || user?.photoURL || ""} className="w-6 h-6 rounded-full" alt="Profile" />
+          <button onClick={() => auth.signOut()} className="flex flex-col items-center gap-1 text-white/70 hover:text-red-400 transition-colors">
+            <img src={userProfile?.photoURL || user?.photoURL || ""} className="w-6 h-6 rounded-full border border-white/20" alt="Profile" />
             <span className="text-xs">Profile</span>
           </button>
         </div>
       </nav>
 
       {/* Debug / Seed Button */}
-      <div className="fixed top-20 right-4 z-50 flex flex-col gap-2">
+      <div className="fixed top-4 right-4 z-50 flex flex-col gap-2">
         <button
           onClick={() => setDevMode(!devMode)}
-          className={`text-xs px-3 py-1 rounded-full shadow-lg transition-colors ${devMode ? "bg-purple-600 text-white" : "bg-gray-200 text-gray-700"}`}
+          className={`text-xs px-3 py-1 rounded-full shadow-lg transition-colors font-bold ${devMode ? "bg-accent text-background" : "bg-white/10 text-white/50"}`}
         >
-          {devMode ? "Dev Mode: ON" : "Dev Mode: OFF"}
+          {devMode ? "DEV" : "DEV"}
         </button>
         {allUsers.length < 5 && (
           <button
@@ -208,7 +208,7 @@ export default function Home() {
             }}
             className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full shadow-lg hover:bg-purple-700"
           >
-            + Add Dummy Users
+            + Seed
           </button>
         )}
 
